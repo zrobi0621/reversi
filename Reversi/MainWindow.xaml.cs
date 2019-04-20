@@ -20,48 +20,136 @@ namespace Reversi
     /// </summary>
     public partial class MainWindow : Window
     {
-        
+        Grid myGrid;
+        int[,] gridMatrix = new int[8, 8]
+        {
+                {0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0},
+                {0,0,0,2,1,0,0,0},
+                {0,0,0,1,2,0,0,0},
+                {0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0},
+                {0,0,0,0,0,0,0,0},
+        };  // 0 -> EMPTY   1 -> BLACK  2 -> WHITE
+
+        int player = 0; //0 -> WHITE    1-> BLACK
+        int whitePoints = 0;
+        int blackPoints = 0;
+
 
         public MainWindow()
         {
             InitializeComponent();
-            CreateCanvas();
+            CreateGrid();
+            UpdateCounter();
         }
 
-        private void CreateCanvas()
+        private void CreateGrid()
         {
-            Grid myGrid = GameGrid;
-            //Rectangle rect = new Rectangle();
-           // rect.Fill = Brushes.Red;
-            int r = 0;
-            int c = 0;
-            
+            myGrid = GameGrid;
+
+            whitePoints = 0;
+            blackPoints = 0;
 
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    Rectangle rect = new Rectangle();
-                    rect.MouseEnter += Rect_MouseEnter;
-                    rect.MouseLeave += Rect_MouseLeave;
-                    rect.Fill = Brushes.AntiqueWhite;
-                    rect.Stroke = Brushes.Black;
-                    Grid.SetRow(rect, i);
-                    Grid.SetColumn(rect, j);
-                    myGrid.Children.Add(rect);
+                    Canvas canvas = new Canvas();
+                    canvas.MouseDown += Canvas_MouseDown;
+                    canvas.MouseEnter += Canvas_MouseEnter;
+                    canvas.MouseLeave += Canvas_MouseLeave;
+
+                    canvas.Background = Brushes.ForestGreen;
+                    Grid.SetRow(canvas, i);
+                    Grid.SetColumn(canvas, j);
+                    myGrid.Children.Add(canvas);
+
+                    Circle newCircle = new Circle(25);
+                    if (gridMatrix[i,j] == 1)
+                    {                        
+                        newCircle.Draw(canvas, Brushes.Black);
+                    }
+                    else if(gridMatrix[i, j] == 2)
+                    {
+                        newCircle.Draw(canvas, Brushes.White);
+                    }
                 }
             }
         }
 
-       
-        private void Rect_MouseEnter(object sender, MouseEventArgs e)
+        //Update Black and White Counters
+        void UpdateCounter()
         {
-            (sender as Rectangle).Fill = Brushes.Red;
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (gridMatrix[i, j] == 1)
+                    {
+                        blackPoints++;
+                    }
+                    else if(gridMatrix[i, j] == 2)
+                    {
+                        whitePoints++;
+                    }
+                }
+            }
+
+            BlackPointsCounter.Content = blackPoints.ToString();
+            WhitePointsCounter.Content = whitePoints.ToString();
         }
 
-        private void Rect_MouseLeave(object sender, MouseEventArgs e)
+        //EVENTS
+        private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            (sender as Rectangle).Fill = Brushes.Azure;
+
+            //e.getPosition TODO grid position
+
+                Circle newCircle = new Circle(25);
+                if (player == 0)
+                {
+                    newCircle.Draw(sender as Canvas, Brushes.White);
+                    player = 1;
+                    TurnLabel.Content = "BLACK's turn!";
+                }
+                else
+                {
+                    newCircle.Draw(sender as Canvas, Brushes.Black);
+                    player = 0;
+                    TurnLabel.Content = "WHITE's turn!";
+                }
+            UpdateCounter();
+        }
+
+        private void Canvas_MouseEnter(object sender, MouseEventArgs e)
+        {
+            Canvas canvas = (sender as Canvas);
+            if (canvas.Children.Count < 1)
+            {
+                Rectangle rect = new Rectangle();
+                rect.Width = canvas.ActualWidth;
+                rect.Height = canvas.ActualHeight;
+                rect.Stroke = Brushes.Red;
+                canvas.Children.Add(rect);
+            }
+        }
+
+        private void Canvas_MouseLeave(object sender, MouseEventArgs e)
+        {
+            Canvas canvas = (sender as Canvas);
+
+
+            canvas.Children.Remove(canvas.Children.OfType<Rectangle>().FirstOrDefault());
+        }
+
+        //BUTTONS
+        private void NewGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            NewGameWindow newGameWindow = new NewGameWindow();
+            
+            newGameWindow.ShowDialog();
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)
