@@ -21,6 +21,11 @@ namespace Reversi
     public partial class MainWindow : Window
     {
         Grid myGrid;
+
+        public delegate void RefreshGame();
+        public event RefreshGame RefreshGameEvent;
+
+        // 0 -> EMPTY   1 -> BLACK  2 -> WHITE
         int[,] gridMatrix = new int[8, 8]
         {
                 {0,0,0,0,0,0,0,0},
@@ -31,26 +36,45 @@ namespace Reversi
                 {0,0,0,0,0,0,0,0},
                 {0,0,0,0,0,0,0,0},
                 {0,0,0,0,0,0,0,0},
-        };  // 0 -> EMPTY   1 -> BLACK  2 -> WHITE
-
-        int player = 0; //0 -> WHITE    1-> BLACK
+        };  
+    
         int whitePoints = 0;
         int blackPoints = 0;
 
+        int playerTurn = 0; //0 -> WHITE's    1-> BLACK's
+        string playerOneName = null;
+        string playerTwoName = null;
+        bool ai = false;
+
+        public bool isStarted { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
+            isStarted = false;
+        }
+
+        public void InitGame(int playerTurn, string playerOneName, string playerTwoName, bool ai)
+        {
+            this.playerTurn = playerTurn;
+            this.playerOneName = playerOneName;
+            this.playerTwoName = playerTwoName;
+            this.ai = ai;
+
+            whitePoints = 0;
+            blackPoints = 0;
+
+            isStarted = true;
+
+            WhitePointsLabel.Content = $"White({playerOneName}):";
+            BlackPointsLabel.Content = $"Black({playerTwoName}):";
+
             CreateGrid();
-            UpdateCounter();
         }
 
         private void CreateGrid()
         {
             myGrid = GameGrid;
-
-            whitePoints = 0;
-            blackPoints = 0;
 
             for (int i = 0; i < 8; i++)
             {
@@ -79,8 +103,8 @@ namespace Reversi
             }
         }
 
-        //Update Black and White Counters
-        void UpdateCounter()
+        //Update Black's and White's Counters
+        void UpdateCounters()
         {
             for (int i = 0; i < 8; i++)
             {
@@ -96,31 +120,54 @@ namespace Reversi
                     }
                 }
             }
+            // TODO +2???
 
             BlackPointsCounter.Content = blackPoints.ToString();
             WhitePointsCounter.Content = whitePoints.ToString();
         }
 
+       public void RefreshUI()
+        {
+            WhitePointsLabel.Content = $"White({playerOneName}):";
+            BlackPointsLabel.Content = $"Black({playerTwoName}):";
+            BlackPointsCounter.Content = blackPoints.ToString();
+            WhitePointsCounter.Content = whitePoints.ToString();
+
+            if (playerTurn == 0)
+            {
+                TurnLabel.Content = "WHITE's turn!";
+                TurnLabel.Background = Brushes.White;
+                TurnLabel.Foreground = Brushes.Black;
+             
+            }
+            else
+            {
+                TurnLabel.Content = "BLACK's turn!";
+                TurnLabel.Background = Brushes.Black;
+                TurnLabel.Foreground = Brushes.White;
+            }
+
+            UpdateCounters();
+        }
+
         //EVENTS
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            //e.getPosition TODO get grid position
 
-            //e.getPosition TODO grid position
+            Circle newCircle = new Circle(25);
+            if (playerTurn == 0)    //0 -> WHITE's    1-> BLACK's
+            {
+                newCircle.Draw(sender as Canvas, Brushes.White);
+                playerTurn = 1;
+            }
+            else
+            {
+                newCircle.Draw(sender as Canvas, Brushes.Black);
+                playerTurn = 0;
+            }
 
-                Circle newCircle = new Circle(25);
-                if (player == 0)
-                {
-                    newCircle.Draw(sender as Canvas, Brushes.White);
-                    player = 1;
-                    TurnLabel.Content = "BLACK's turn!";
-                }
-                else
-                {
-                    newCircle.Draw(sender as Canvas, Brushes.Black);
-                    player = 0;
-                    TurnLabel.Content = "WHITE's turn!";
-                }
-            UpdateCounter();
+            RefreshUI();
         }
 
         private void Canvas_MouseEnter(object sender, MouseEventArgs e)
@@ -136,20 +183,37 @@ namespace Reversi
             }
         }
 
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to quit? All unsaved progress will be lost.", "Quit", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+            {
+                e.Cancel = true;
+            }
+        }
+
         private void Canvas_MouseLeave(object sender, MouseEventArgs e)
         {
             Canvas canvas = (sender as Canvas);
-
-
             canvas.Children.Remove(canvas.Children.OfType<Rectangle>().FirstOrDefault());
         }
 
         //BUTTONS
-        private void NewGameButton_Click(object sender, RoutedEventArgs e)
+        private void NewGame_Click(object sender, RoutedEventArgs e)
         {
-            NewGameWindow newGameWindow = new NewGameWindow();
-            
-            newGameWindow.ShowDialog();
+            if (!isStarted)
+            {
+                NewGameWindow newGameWindow = new NewGameWindow();
+                RefreshGameEvent += new RefreshGame(RefreshUI);       //event initialization
+                newGameWindow.RefreshGame = RefreshGameEvent;        //assigning event to the Delegate
+                newGameWindow.ShowDialog();
+            }
+            else
+            {
+                if (MessageBox.Show("Do you want to start a new game? All unsaved progress will be lost.", "New Game", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    //TODO init new game
+                }
+            }
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)

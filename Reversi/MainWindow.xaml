@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Reversi"
         mc:Ignorable="d"
-        Title="Reversi" Height="550" Width="800"
+        Title="Reversi" Height="560" Width="800"
         WindowStartupLocation="CenterScreen">
     
     <Grid>
@@ -43,13 +43,13 @@
 
             <StackPanel Grid.Row="0" Margin="10" Orientation="Vertical" VerticalAlignment="Center">
                 <Label Content="-- Reversi --" HorizontalAlignment="Center" FontSize="30"></Label>
-                <Button Content="New game" Width="100" FontSize="15" Margin="5" Click="NewGameButton_Click"></Button>
+                <Button Content="New game" Width="100" FontSize="15" Margin="5" Click="NewGame_Click"></Button>
                 <Button Content="Highscores" Width="100" FontSize="15" Margin="5"></Button>
                 <Button Content="Exit" Width="100" FontSize="15" Margin="5" Click="ExitButton_Click"></Button>
             </StackPanel>
             
             <StackPanel Grid.Row="1" Margin="10" Orientation="Vertical" VerticalAlignment="Center">
-                <Label Name="TurnLabel" Content="White's turn!" HorizontalAlignment="Center" FontSize="15" Background="DimGray" Foreground="White" BorderBrush="Black" BorderThickness="1"></Label>
+                <Label Name="TurnLabel" Content="Start a new Game!" HorizontalAlignment="Center" FontSize="15" Background="White" Foreground="Black" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Center" Width="150"></Label>
                 <Label Name="WhitePointsLabel" Content="White(AI):" FontSize="20" HorizontalAlignment="Center"></Label>
                 <Label Name="WhitePointsCounter" Content="0" FontSize="25" HorizontalAlignment="Center"></Label>
                 <Label Name="BlackPointsLabel" Content="Black(Name):" FontSize="20" HorizontalAlignment="Center"></Label>
