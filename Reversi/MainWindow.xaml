@@ -56,7 +56,7 @@
                 <Label Name="BlackPointsLabel" Content="Black(Name):" FontSize="20" HorizontalAlignment="Center"></Label>
                 <Label Name="BlackPointsCounter" Content="0" FontSize="25" HorizontalAlignment="Center"></Label>
                 <Label Content="Time:" FontSize="20" HorizontalAlignment="Center"></Label>
-                <Label Content="00:00:00" FontSize="26" HorizontalAlignment="Center"></Label>
+                <Label Name="StopWatchLabel" Content="00:00:00" FontSize="26" HorizontalAlignment="Center"></Label>
                 <CheckBox Content="Debug mode" HorizontalAlignment="Center" Margin="0 10 0 0"></CheckBox>
                 <Label Name="DebugLabel" Content="..." HorizontalAlignment="Center"></Label>
             </StackPanel>

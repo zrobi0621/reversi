@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Reversi
 {
@@ -39,7 +41,6 @@ namespace Reversi
         };
         int[,] gridMatrix = new int[8, 8];
 
-
         int whitePoints = 0;
         int blackPoints = 0;
 
@@ -51,10 +52,17 @@ namespace Reversi
         public bool isStarted { get; set; }
         //bool isGameOver = false;
 
+        DispatcherTimer dispatcherTimer = new DispatcherTimer();
+        int ticked = 0;
+        
         public MainWindow()
         {
             InitializeComponent();
+
             isStarted = false;
+
+            dispatcherTimer.Tick += new EventHandler(DispatcherTimer_Tick);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
         }
 
         public void InitGame(int playerTurn, string playerOneName, string playerTwoName, bool ai)
@@ -83,6 +91,10 @@ namespace Reversi
             {
                 MessageBox.Show($"BLACK ({playerTwoName}) starts!");
             }
+
+            ticked = 0;
+            dispatcherTimer.Start();
+            
         }
 
         private void CreateGrid()
@@ -118,31 +130,6 @@ namespace Reversi
             }
         }
 
-        //Update Black's and White's Counters
-        void UpdateCounters()
-        {
-            blackPoints = 0;
-            whitePoints = 0;
-
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
-                {
-                    if (gridMatrix[i, j] == 1)
-                    {
-                        blackPoints++;
-                    }
-                    else if(gridMatrix[i, j] == 2)
-                    {
-                        whitePoints++;
-                    }
-                }
-            }
-
-            BlackPointsCounter.Content = blackPoints.ToString();
-            WhitePointsCounter.Content = whitePoints.ToString();
-        }
-
        public void RefreshUI()
         {
             WhitePointsLabel.Content = $"White({playerOneName}):";
@@ -164,7 +151,27 @@ namespace Reversi
                 TurnLabel.Foreground = Brushes.White;
             }
 
-            UpdateCounters();
+            //Update Counters
+            blackPoints = 0;
+            whitePoints = 0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (gridMatrix[i, j] == 1)
+                    {
+                        blackPoints++;
+                    }
+                    else if (gridMatrix[i, j] == 2)
+                    {
+                        whitePoints++;
+                    }
+                }
+            }
+
+            BlackPointsCounter.Content = blackPoints.ToString();
+            WhitePointsCounter.Content = whitePoints.ToString();
         }
 
         private void SaveProgress()
@@ -191,6 +198,7 @@ namespace Reversi
                 Circle newCircle = new Circle(25);
                 if (playerTurn == 0)    //0 -> WHITE's    1-> BLACK's
                 {
+                    //TODO canClick 
                     gridMatrix[r, c] = 2;
                     newCircle.Draw(sender as Canvas, Brushes.White);
                     playerTurn = 1;
@@ -203,11 +211,11 @@ namespace Reversi
                     }
                     else
                     {
+                        //TODO canClick 
                         gridMatrix[r, c] = 1;
                         newCircle.Draw(sender as Canvas, Brushes.Black);
                         playerTurn = 0;
                     }
-
                 }
                 RefreshUI();
             }
@@ -226,18 +234,30 @@ namespace Reversi
             }
         }
 
+        private void Canvas_MouseLeave(object sender, MouseEventArgs e)
+        {
+            Canvas canvas = (sender as Canvas);
+            canvas.Children.Remove(canvas.Children.OfType<Rectangle>().FirstOrDefault());
+        }
+
+        private void DispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            ticked++;
+            TimeSpan time = TimeSpan.FromSeconds(ticked);
+            string stopWatchTime = time.ToString(@"hh\:mm\:ss");
+
+            StopWatchLabel.Content = stopWatchTime;
+
+            // Forcing the CommandManager to raise the RequerySuggested event
+            CommandManager.InvalidateRequerySuggested();
+        }
+
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             if (MessageBox.Show("Are you sure you want to quit? All unsaved progress will be lost.", "Quit", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             {
                 e.Cancel = true;
             }
-        }
-
-        private void Canvas_MouseLeave(object sender, MouseEventArgs e)
-        {
-            Canvas canvas = (sender as Canvas);
-            canvas.Children.Remove(canvas.Children.OfType<Rectangle>().FirstOrDefault());
         }
 
         //BUTTONS
@@ -251,22 +271,23 @@ namespace Reversi
             {
                 if (MessageBox.Show("Do you want to start a new game? All unsaved progress will be lost.", "New Game", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
+                    dispatcherTimer.Stop();
                     myGrid.Children.Clear();
                     isStarted = false;
                     OpenNewGameWindow();
                 }
             }
         }
-        
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
 
         private void HighscoresButton_Click(object sender, RoutedEventArgs e)
         {
             HighscoresWindow highscoresWindow = new HighscoresWindow();
             highscoresWindow.ShowDialog();
+        }
+
+        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
