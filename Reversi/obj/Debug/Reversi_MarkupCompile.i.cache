@@ -10,11 +10,11 @@ none
 false
 DEBUG;TRACE
 D:\Projects\C#\Reversi\Reversi\App.xaml
-2-1036652792
+42057753175
 
-11344375584
+131779771021
 131569487696
-MainWindow.xaml;NewGameWindow.xaml;
+HighscoresWindow.xaml;MainWindow.xaml;NewGameWindow.xaml;Window1.xaml;
 
-True
+False
 

@@ -15,3 +15,7 @@ D:\Projects\C#\Reversi\Reversi\obj\Debug\Reversi.exe
 D:\Projects\C#\Reversi\Reversi\obj\Debug\Reversi.pdb
 D:\Projects\C#\Reversi\Reversi\obj\Debug\NewGameWindow.g.cs
 D:\Projects\C#\Reversi\Reversi\obj\Debug\NewGameWindow.baml
+D:\Projects\C#\Reversi\Reversi\obj\Debug\HighscoresWindow.g.cs
+D:\Projects\C#\Reversi\Reversi\obj\Debug\HighscoresWindow.baml
+D:\Projects\C#\Reversi\Reversi\obj\Debug\Window1.g.cs
+D:\Projects\C#\Reversi\Reversi\obj\Debug\Window1.baml

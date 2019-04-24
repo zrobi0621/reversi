@@ -26,7 +26,7 @@ namespace Reversi
         public event RefreshGame RefreshGameEvent;
 
         // 0 -> EMPTY   1 -> BLACK  2 -> WHITE
-        int[,] gridMatrix = new int[8, 8]
+        int[,] startMatrix = new int[8, 8]
         {
                 {0,0,0,0,0,0,0,0},
                 {0,0,0,0,0,0,0,0},
@@ -36,8 +36,10 @@ namespace Reversi
                 {0,0,0,0,0,0,0,0},
                 {0,0,0,0,0,0,0,0},
                 {0,0,0,0,0,0,0,0},
-        };  
-    
+        };
+        int[,] gridMatrix = new int[8, 8];
+
+
         int whitePoints = 0;
         int blackPoints = 0;
 
@@ -47,6 +49,7 @@ namespace Reversi
         bool ai = false;
 
         public bool isStarted { get; set; }
+        //bool isGameOver = false;
 
         public MainWindow()
         {
@@ -70,10 +73,22 @@ namespace Reversi
             BlackPointsLabel.Content = $"Black({playerTwoName}):";
 
             CreateGrid();
+            RefreshUI();
+
+            if (playerTurn == 0)
+            {
+                MessageBox.Show($"WHITE ({playerOneName}) starts!");
+            }
+            else
+            {
+                MessageBox.Show($"BLACK ({playerTwoName}) starts!");
+            }
         }
 
         private void CreateGrid()
         {
+            Array.Copy(startMatrix, 0, gridMatrix, 0, startMatrix.Length);
+            
             myGrid = GameGrid;
 
             for (int i = 0; i < 8; i++)
@@ -106,6 +121,9 @@ namespace Reversi
         //Update Black's and White's Counters
         void UpdateCounters()
         {
+            blackPoints = 0;
+            whitePoints = 0;
+
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
@@ -120,7 +138,6 @@ namespace Reversi
                     }
                 }
             }
-            // TODO +2???
 
             BlackPointsCounter.Content = blackPoints.ToString();
             WhitePointsCounter.Content = whitePoints.ToString();
@@ -150,24 +167,50 @@ namespace Reversi
             UpdateCounters();
         }
 
+        private void SaveProgress()
+        {
+            //TODO
+        }
+
+        private void OpenNewGameWindow()
+        {
+            NewGameWindow newGameWindow = new NewGameWindow();
+            RefreshGameEvent += new RefreshGame(RefreshUI);       //event initialization
+            newGameWindow.RefreshGame = RefreshGameEvent;        //assigning event to the Delegate
+            newGameWindow.ShowDialog();
+        }
+
         //EVENTS
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            //e.getPosition TODO get grid position
+            int r = Grid.GetRow(sender as Canvas);
+            int c = Grid.GetColumn(sender as Canvas);
 
-            Circle newCircle = new Circle(25);
-            if (playerTurn == 0)    //0 -> WHITE's    1-> BLACK's
+            if (gridMatrix[r,c].Equals(0))
             {
-                newCircle.Draw(sender as Canvas, Brushes.White);
-                playerTurn = 1;
-            }
-            else
-            {
-                newCircle.Draw(sender as Canvas, Brushes.Black);
-                playerTurn = 0;
-            }
+                Circle newCircle = new Circle(25);
+                if (playerTurn == 0)    //0 -> WHITE's    1-> BLACK's
+                {
+                    gridMatrix[r, c] = 2;
+                    newCircle.Draw(sender as Canvas, Brushes.White);
+                    playerTurn = 1;
+                }
+                else
+                {
+                    if (ai)
+                    {
+                        //TODO
+                    }
+                    else
+                    {
+                        gridMatrix[r, c] = 1;
+                        newCircle.Draw(sender as Canvas, Brushes.Black);
+                        playerTurn = 0;
+                    }
 
-            RefreshUI();
+                }
+                RefreshUI();
+            }
         }
 
         private void Canvas_MouseEnter(object sender, MouseEventArgs e)
@@ -202,23 +245,28 @@ namespace Reversi
         {
             if (!isStarted)
             {
-                NewGameWindow newGameWindow = new NewGameWindow();
-                RefreshGameEvent += new RefreshGame(RefreshUI);       //event initialization
-                newGameWindow.RefreshGame = RefreshGameEvent;        //assigning event to the Delegate
-                newGameWindow.ShowDialog();
+                OpenNewGameWindow();
             }
             else
             {
                 if (MessageBox.Show("Do you want to start a new game? All unsaved progress will be lost.", "New Game", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
-                    //TODO init new game
+                    myGrid.Children.Clear();
+                    isStarted = false;
+                    OpenNewGameWindow();
                 }
             }
         }
-
+        
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void HighscoresButton_Click(object sender, RoutedEventArgs e)
+        {
+            HighscoresWindow highscoresWindow = new HighscoresWindow();
+            highscoresWindow.ShowDialog();
         }
     }
 }
