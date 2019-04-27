@@ -5,9 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Reversi"
         mc:Ignorable="d"
-        Title="Reversi - Highscores" Height="700" Width="400"
+        Title="Reversi - High scores" Height="700" Width="400"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="16*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ListView Grid.Row="0" Margin="10"></ListView>
+        <Button Grid.Row ="1" Margin="10" Content="Clear"></Button>
     </Grid>
+
 </Window>

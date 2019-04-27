@@ -19,3 +19,11 @@ D:\Projects\C#\Reversi\Reversi\obj\Debug\HighscoresWindow.g.cs
 D:\Projects\C#\Reversi\Reversi\obj\Debug\HighscoresWindow.baml
 D:\Projects\C#\Reversi\Reversi\obj\Debug\Window1.g.cs
 D:\Projects\C#\Reversi\Reversi\obj\Debug\Window1.baml
+D:\Projects\C#\Reversi\Reversi\bin\Debug\ReversiDB.db
+D:\Projects\C#\Reversi\Reversi\bin\Debug\Dapper.dll
+D:\Projects\C#\Reversi\Reversi\bin\Debug\System.Data.SQLite.dll
+D:\Projects\C#\Reversi\Reversi\bin\Debug\Dapper.xml
+D:\Projects\C#\Reversi\Reversi\bin\Debug\System.Data.SQLite.xml
+D:\Projects\C#\Reversi\Reversi\bin\Debug\System.Data.SQLite.dll.config
+D:\Projects\C#\Reversi\Reversi\obj\Debug\Reversi_Content.g.cs
+D:\Projects\C#\Reversi\Reversi\obj\Debug\Reversi.csproj.CopyComplete

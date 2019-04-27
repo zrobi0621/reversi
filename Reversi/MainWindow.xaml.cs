@@ -50,10 +50,12 @@ namespace Reversi
         bool ai = false;
 
         public bool isStarted { get; set; }
-        //bool isGameOver = false;
+        bool isGameOver = false;
 
         DispatcherTimer dispatcherTimer = new DispatcherTimer();
         int ticked = 0;
+
+        int gameOverTime = 0;
         
         public MainWindow()
         {
@@ -94,7 +96,6 @@ namespace Reversi
 
             ticked = 0;
             dispatcherTimer.Start();
-            
         }
 
         private void CreateGrid()
@@ -174,9 +175,28 @@ namespace Reversi
             WhitePointsCounter.Content = whitePoints.ToString();
         }
 
-        private void SaveProgress()
+        private void GameOver()
         {
-            //TODO
+            dispatcherTimer.Stop();
+            isGameOver = true;
+            gameOverTime = ticked;
+            SaveResult();
+
+            if (MessageBox.Show("Do you want to start a new game? ", "New Game", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                myGrid.Children.Clear();
+                isStarted = false;
+                OpenNewGameWindow();
+            }
+            else
+            {
+                this.Close();
+            }
+        }
+
+        private void SaveResult()
+        {
+            SQLiteDataAccess.AddHighscore(new Highscore(playerOneName, playerTwoName, gameOverTime, whitePoints, blackPoints));
         }
 
         private void OpenNewGameWindow()
@@ -187,7 +207,7 @@ namespace Reversi
             newGameWindow.ShowDialog();
         }
 
-        //EVENTS
+        //***************** EVENTS *****************
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             int r = Grid.GetRow(sender as Canvas);
@@ -198,7 +218,7 @@ namespace Reversi
                 Circle newCircle = new Circle(25);
                 if (playerTurn == 0)    //0 -> WHITE's    1-> BLACK's
                 {
-                    //TODO canClick 
+                    //TODO validMove
                     gridMatrix[r, c] = 2;
                     newCircle.Draw(sender as Canvas, Brushes.White);
                     playerTurn = 1;
@@ -211,7 +231,7 @@ namespace Reversi
                     }
                     else
                     {
-                        //TODO canClick 
+                        //TODO validMove
                         gridMatrix[r, c] = 1;
                         newCircle.Draw(sender as Canvas, Brushes.Black);
                         playerTurn = 0;
@@ -240,6 +260,7 @@ namespace Reversi
             canvas.Children.Remove(canvas.Children.OfType<Rectangle>().FirstOrDefault());
         }
 
+        //Stopwatch
         private void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             ticked++;
@@ -256,11 +277,12 @@ namespace Reversi
         {
             if (MessageBox.Show("Are you sure you want to quit? All unsaved progress will be lost.", "Quit", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             {
+                dispatcherTimer.Stop();
                 e.Cancel = true;
             }
         }
 
-        //BUTTONS
+        //***************** BUTTONS *****************
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {
             if (!isStarted)

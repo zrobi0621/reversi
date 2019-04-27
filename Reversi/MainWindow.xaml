@@ -45,7 +45,7 @@
             <StackPanel Grid.Row="0" Margin="10" Orientation="Vertical" VerticalAlignment="Center">
                 <Label Content="-- Reversi --" HorizontalAlignment="Center" FontSize="30"></Label>
                 <Button Content="New game" Width="100" FontSize="15" Margin="5" Click="NewGame_Click"></Button>
-                <Button Content="Highscores" Width="100" FontSize="15" Margin="5" Click="HighscoresButton_Click"></Button>
+                <Button Content="High scores" Width="100" FontSize="15" Margin="5" Click="HighscoresButton_Click"></Button>
                 <Button Content="Exit" Width="100" FontSize="15" Margin="5" Click="ExitButton_Click"></Button>
             </StackPanel>
             
