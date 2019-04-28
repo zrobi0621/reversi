@@ -10,22 +10,29 @@ namespace Reversi
     {
         public string WhitePlayer { get; set; }
         public string BlackPlayer { get; set; }
-        public int Time { get; set; }
+        public string Time { get; set; }
         public int WhitePoints { get; set; }
         public int BlackPoints { get; set; }
+        public string Date { get; set; }
 
-        public Highscore(string whitePlayer, string blackPlayer, int time, int whitePoints, int blackPoints)
+        public Highscore()
+        {
+
+        }
+
+        public Highscore(string whitePlayer, string blackPlayer, string time, int whitePoints, int blackPoints, string date)
         {
             WhitePlayer = whitePlayer;
             BlackPlayer = blackPlayer;
             Time = time;
             WhitePoints = whitePoints;
             BlackPoints = blackPoints;
+            Date = date;
         }
 
         public override string ToString()
         {
-            return $"{WhitePlayer} {BlackPlayer} {Time} {WhitePoints} {BlackPoints}";
+            return $"{WhitePlayer} {BlackPlayer} {Time} {WhitePoints} {BlackPoints} {Date}";
         }
     }
 }

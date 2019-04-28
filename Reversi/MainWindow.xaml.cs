@@ -23,6 +23,7 @@ namespace Reversi
     public partial class MainWindow : Window
     {
         Grid myGrid;
+        string date = null;
 
         public delegate void RefreshGame();
         public event RefreshGame RefreshGameEvent;
@@ -50,16 +51,17 @@ namespace Reversi
         bool ai = false;
 
         public bool isStarted { get; set; }
-        bool isGameOver = false;
 
         DispatcherTimer dispatcherTimer = new DispatcherTimer();
         int ticked = 0;
 
-        int gameOverTime = 0;
+        string gameOverTime = null;
         
         public MainWindow()
         {
             InitializeComponent();
+
+            date = System.DateTime.Now.Date.ToString();
 
             isStarted = false;
 
@@ -67,6 +69,7 @@ namespace Reversi
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
         }
 
+        //Game initialization
         public void InitGame(int playerTurn, string playerOneName, string playerTwoName, bool ai)
         {
             this.playerTurn = playerTurn;
@@ -178,8 +181,7 @@ namespace Reversi
         private void GameOver()
         {
             dispatcherTimer.Stop();
-            isGameOver = true;
-            gameOverTime = ticked;
+            gameOverTime = StopWatchLabel.Content.ToString();
             SaveResult();
 
             if (MessageBox.Show("Do you want to start a new game? ", "New Game", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
@@ -196,7 +198,7 @@ namespace Reversi
 
         private void SaveResult()
         {
-            SQLiteDataAccess.AddHighscore(new Highscore(playerOneName, playerTwoName, gameOverTime, whitePoints, blackPoints));
+            SQLiteDataAccess.AddHighscore(new Highscore(playerOneName, playerTwoName, gameOverTime, whitePoints, blackPoints, date));
         }
 
         private void OpenNewGameWindow()

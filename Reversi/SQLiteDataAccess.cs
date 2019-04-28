@@ -18,7 +18,7 @@ namespace Reversi
         }
 
         //LOAD
-        public static List<Highscore> LoadHighscore()
+        public static List<Highscore> LoadHighscores()
         {
             using (IDbConnection connection = new SQLiteConnection(LoadConnectionString()))
             {
@@ -32,10 +32,18 @@ namespace Reversi
         {
             using (IDbConnection connection = new SQLiteConnection(LoadConnectionString()))
             {
-                connection.Execute("INSERT INTO Highscore (WhitePlayer, BlackPlayer, Time, WhitePoints, BlackPoints) VALUES (@WhitePlayer, @BlackPlayer, @Time, @WhitePoints, @BlackPoints)", highscore);
+                connection.Execute("INSERT INTO Highscores (WhitePlayer, BlackPlayer, Time, WhitePoints, BlackPoints, Date) VALUES (@WhitePlayer, @BlackPlayer, @Time, @WhitePoints, @BlackPoints, @Date)", highscore);
             }
         }
 
-        //DELETE TODO
+        //DELETE
+        public static void DeleteHighscores()
+        {
+            using (IDbConnection connection = new SQLiteConnection(LoadConnectionString()))
+            {
+                connection.Execute("DELETE FROM Highscores");
+                connection.Execute("VACUUM");
+            }
+        }
     }
 }

@@ -5,15 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Reversi"
         mc:Ignorable="d"
-        Title="Reversi - High scores" Height="700" Width="400"
+        Title="Reversi - High scores" Height="700" Width="550"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="16*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ListView Grid.Row="0" Margin="10"></ListView>
-        <Button Grid.Row ="1" Margin="10" Content="Clear"></Button>
+        <ListView Name="ListView" Grid.Row="0" Margin="10" ItemsSource="{Binding}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="White Player" Width="100" DisplayMemberBinding="{Binding Path=WhitePlayer}" />
+                    <GridViewColumn Header="Black Player" Width="100" DisplayMemberBinding="{Binding Path=BlackPlayer}" />
+                    <GridViewColumn Header="White Points" Width="75" DisplayMemberBinding="{Binding Path=BlackPoints}" />
+                    <GridViewColumn Header="Black Points" Width="75" DisplayMemberBinding="{Binding Path=BlackPoints}" />
+                    <GridViewColumn Header="Time" Width="70" DisplayMemberBinding="{Binding Path=Time}" />
+                    <GridViewColumn Header="Date" Width="80" DisplayMemberBinding="{Binding Path=Date}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Name="ClearButton" Grid.Row ="1" Margin="8" Content="Clear High Scores" Click="ClearButton_Click" Background="OrangeRed" Foreground="White"></Button>
     </Grid>
-
 </Window>

@@ -19,9 +19,28 @@ namespace Reversi
     /// </summary>
     public partial class HighscoresWindow : Window
     {
+        List<Highscore> highscores = new List<Highscore>();
+
         public HighscoresWindow()
         {
             InitializeComponent();
+            ShowHighscores();
+        }
+
+        private void ShowHighscores()
+        {
+            highscores = SQLiteDataAccess.LoadHighscores();
+            ListView.ItemsSource = null;
+            ListView.ItemsSource = highscores;
+        }
+
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Do you want to clear the High Scores? ", "Clear - High Scores", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                SQLiteDataAccess.DeleteHighscores();
+                ShowHighscores();
+            }
         }
     }
 }
