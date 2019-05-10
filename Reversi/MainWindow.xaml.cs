@@ -28,6 +28,11 @@ namespace Reversi
         public delegate void RefreshGame();
         public event RefreshGame RefreshGameEvent;
 
+        enum Cell { Empty, Black, White }
+        enum Direction { North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest }
+
+        List<Direction> validDirections = new List<Direction>();
+
         // 0 -> EMPTY   1 -> BLACK  2 -> WHITE
         int[,] startMatrix = new int[8, 8]
         {
@@ -45,7 +50,7 @@ namespace Reversi
         int whitePoints = 0;
         int blackPoints = 0;
 
-        int playerTurn = 0; //0 -> WHITE's    1-> BLACK's
+        int playerTurn = 2; //2 -> WHITE's    1-> BLACK's
         string playerOneName = null;
         string playerTwoName = null;
         bool ai = false;
@@ -56,7 +61,9 @@ namespace Reversi
         int ticked = 0;
 
         string gameOverTime = null;
-        
+
+        int flipCount = 0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -104,7 +111,7 @@ namespace Reversi
         private void CreateGrid()
         {
             Array.Copy(startMatrix, 0, gridMatrix, 0, startMatrix.Length);
-            
+
             myGrid = GameGrid;
 
             for (int i = 0; i < 8; i++)
@@ -122,11 +129,12 @@ namespace Reversi
                     myGrid.Children.Add(canvas);
 
                     Circle newCircle = new Circle(25);
-                    if (gridMatrix[i,j] == 1)
-                    {                        
+
+                    if (gridMatrix[i, j] == (int)Cell.Black)
+                    {
                         newCircle.Draw(canvas, Brushes.Black);
                     }
-                    else if(gridMatrix[i, j] == 2)
+                    else if (gridMatrix[i, j] == (int)Cell.White)
                     {
                         newCircle.Draw(canvas, Brushes.White);
                     }
@@ -134,19 +142,19 @@ namespace Reversi
             }
         }
 
-       public void RefreshUI()
+        public void RefreshUI()
         {
             WhitePointsLabel.Content = $"White({playerOneName}):";
             BlackPointsLabel.Content = $"Black({playerTwoName}):";
             BlackPointsCounter.Content = blackPoints.ToString();
             WhitePointsCounter.Content = whitePoints.ToString();
 
-            if (playerTurn == 0)
+            if (playerTurn == 2)
             {
                 TurnLabel.Content = "WHITE's turn!";
                 TurnLabel.Background = Brushes.White;
                 TurnLabel.Foreground = Brushes.Black;
-             
+
             }
             else
             {
@@ -163,11 +171,11 @@ namespace Reversi
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    if (gridMatrix[i, j] == 1)
+                    if (gridMatrix[i, j] == (int)Cell.Black)
                     {
                         blackPoints++;
                     }
-                    else if (gridMatrix[i, j] == 2)
+                    else if (gridMatrix[i, j] == (int)Cell.White)
                     {
                         whitePoints++;
                     }
@@ -204,9 +212,133 @@ namespace Reversi
         private void OpenNewGameWindow()
         {
             NewGameWindow newGameWindow = new NewGameWindow();
-            RefreshGameEvent += new RefreshGame(RefreshUI);       //event initialization
-            newGameWindow.RefreshGame = RefreshGameEvent;        //assigning event to the Delegate
+            RefreshGameEvent += new RefreshGame(RefreshUI);
+            newGameWindow.RefreshGame = RefreshGameEvent;
             newGameWindow.ShowDialog();
+        }
+
+        private bool IsValidMove(int row, int column, Canvas canvas)
+        {
+            //////////////BBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUGG TODOOOOO
+            flipCount = 0;
+            bool valid = true;
+
+            if (gridMatrix[row, column].Equals((int)Cell.Empty))
+            {
+                //Vertical - Down
+                if (row != 7)
+                {
+                    if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
+                    {
+                        if (gridMatrix[row + 1, column].Equals((int)Cell.White) || gridMatrix[row + 1, column].Equals((int)Cell.Empty))
+                        {
+                            valid = false;
+                        }
+
+                        if (valid)
+                        {
+                            for (int i = row + 2; i < 8 - row; i++)
+                            {
+                                if (!gridMatrix[i, column].Equals((int)Cell.Black) && !gridMatrix[i, column].Equals((int)Cell.Empty))
+                                {
+                                    flipCount++;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (gridMatrix[row + 1, column].Equals((int)Cell.Black) || gridMatrix[row + 1, column].Equals((int)Cell.Empty))
+                        {
+                            valid = false;
+                        }
+
+                        if (valid)
+                        {
+                            for (int i = row + 2; i < 8 - row; i++)
+                            {
+                                if (!gridMatrix[i, column].Equals((int)Cell.White) && !gridMatrix[i, column].Equals((int)Cell.Empty))
+                                {
+                                    flipCount++;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //Vertical - Up
+                if (row != 0)
+                {
+                    if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
+                    {
+                        if (gridMatrix[row - 1, column].Equals((int)Cell.White) || gridMatrix[row - 1, column].Equals((int)Cell.Empty))
+                        {
+                            valid = false;
+                        }
+
+                        if (valid)
+                        {
+                            for (int i = row - 2; i > 0; i--)
+                            {
+                                if (!gridMatrix[i, column].Equals((int)Cell.Black) && !gridMatrix[i, column].Equals((int)Cell.Empty))
+                                {
+                                    flipCount++;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (gridMatrix[row - 1, column].Equals((int)Cell.Black) || gridMatrix[row - 1, column].Equals((int)Cell.Empty))
+                        {
+                            valid = false;
+                        }
+
+                        if (valid)
+                        {
+                            for (int i = row - 2; i > 0; i--)
+                            {
+                                if (!gridMatrix[i, column].Equals((int)Cell.White) && !gridMatrix[i, column].Equals((int)Cell.Empty))
+                                {
+                                    flipCount++;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (flipCount > 0)
+            {
+                valid = true;
+            }
+            else
+            {
+                valid = false;
+            }
+
+            return valid;
+        }
+
+        void FlipIfValid(int amount)
+        {
+            //TODOOOO
         }
 
         //***************** EVENTS *****************
@@ -215,13 +347,13 @@ namespace Reversi
             int r = Grid.GetRow(sender as Canvas);
             int c = Grid.GetColumn(sender as Canvas);
 
-            if (gridMatrix[r,c].Equals(0))
+            if (gridMatrix[r, c].Equals((int)Cell.Empty))
             {
                 Circle newCircle = new Circle(25);
-                if (playerTurn == 0)    //0 -> WHITE's    1-> BLACK's
+                if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
                 {
                     //TODO validMove
-                    gridMatrix[r, c] = 2;
+                    gridMatrix[r, c] = (int)Cell.White;
                     newCircle.Draw(sender as Canvas, Brushes.White);
                     playerTurn = 1;
                 }
@@ -234,25 +366,43 @@ namespace Reversi
                     else
                     {
                         //TODO validMove
-                        gridMatrix[r, c] = 1;
+                        gridMatrix[r, c] = (int)Cell.Black;
                         newCircle.Draw(sender as Canvas, Brushes.Black);
-                        playerTurn = 0;
+                        playerTurn = 2;
                     }
                 }
                 RefreshUI();
             }
         }
 
+        //Highlighter
         private void Canvas_MouseEnter(object sender, MouseEventArgs e)
         {
+            int r = Grid.GetRow(sender as Canvas);
+            int c = Grid.GetColumn(sender as Canvas);
             Canvas canvas = (sender as Canvas);
-            if (canvas.Children.Count < 1)
+
+            if (IsValidMove(r, c, canvas))
             {
-                Rectangle rect = new Rectangle();
-                rect.Width = canvas.ActualWidth;
-                rect.Height = canvas.ActualHeight;
-                rect.Stroke = Brushes.Red;
-                canvas.Children.Add(rect);
+                if (canvas.Children.Count < 1)
+                {
+                    Rectangle rect = new Rectangle();
+                    rect.Width = canvas.ActualWidth;
+                    rect.Height = canvas.ActualHeight;
+                    rect.Stroke = Brushes.White;
+                    canvas.Children.Add(rect);
+                }
+            }
+            else
+            {
+                if (canvas.Children.Count < 1)
+                {
+                    Rectangle rect = new Rectangle();
+                    rect.Width = canvas.ActualWidth;
+                    rect.Height = canvas.ActualHeight;
+                    rect.Stroke = Brushes.Red;
+                    canvas.Children.Add(rect);
+                }
             }
         }
 
@@ -270,9 +420,6 @@ namespace Reversi
             string stopWatchTime = time.ToString(@"hh\:mm\:ss");
 
             StopWatchLabel.Content = stopWatchTime;
-
-            // Forcing the CommandManager to raise the RequerySuggested event
-            CommandManager.InvalidateRequerySuggested();
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
