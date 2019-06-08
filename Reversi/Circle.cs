@@ -26,6 +26,7 @@ namespace Reversi
             circle.Stroke = Brushes.Black;
             circle.Fill = fillColor;
 
+            //Delete the previous and create a new one
             canvas.Children.Clear();
             canvas.Children.Add(circle);
         }

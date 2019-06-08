@@ -61,7 +61,7 @@ namespace Reversi
             }
 
             Random r = new Random();
-            playerTurn = r.Next(0, 2);  //0 -> WHITE's    1-> BLACK's
+            playerTurn = r.Next(1, 3);  //2 -> WHITE's    1-> BLACK's
 
             mainWindow.InitGame(playerTurn, playerOneName, playerTwoName, ai);
             mainWindow.isStarted = true;

@@ -51,9 +51,9 @@
             
             <StackPanel Grid.Row="1" Margin="10" Orientation="Vertical" VerticalAlignment="Center">
                 <Label Name="TurnLabel" Content="Start a new Game!" HorizontalAlignment="Center" FontSize="15" Background="White" Foreground="Black" BorderBrush="Black" BorderThickness="1" HorizontalContentAlignment="Center" Width="150"></Label>
-                <Label Name="WhitePointsLabel" Content="White(AI):" FontSize="20" HorizontalAlignment="Center"></Label>
+                <Label Name="WhitePointsLabel" Content="White(Name):" FontSize="20" HorizontalAlignment="Center"></Label>
                 <Label Name="WhitePointsCounter" Content="0" FontSize="25" HorizontalAlignment="Center"></Label>
-                <Label Name="BlackPointsLabel" Content="Black(Name):" FontSize="20" HorizontalAlignment="Center"></Label>
+                <Label Name="BlackPointsLabel" Content="Black(AI):" FontSize="20" HorizontalAlignment="Center"></Label>
                 <Label Name="BlackPointsCounter" Content="0" FontSize="25" HorizontalAlignment="Center"></Label>
                 <Label Content="Time:" FontSize="20" HorizontalAlignment="Center"></Label>
                 <Label Name="StopWatchLabel" Content="00:00:00" FontSize="26" HorizontalAlignment="Center"></Label>

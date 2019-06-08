@@ -63,6 +63,7 @@ namespace Reversi
         string gameOverTime = null;
 
         int flipCount = 0;
+        Dictionary<int, int> cellsToFlip = new Dictionary<int, int>();
 
         public MainWindow()
         {
@@ -95,7 +96,7 @@ namespace Reversi
             CreateGrid();
             RefreshUI();
 
-            if (playerTurn == 0)
+            if (playerTurn == 2)
             {
                 MessageBox.Show($"WHITE ({playerOneName}) starts!");
             }
@@ -217,53 +218,126 @@ namespace Reversi
             newGameWindow.ShowDialog();
         }
 
+        private void Flip(Dictionary<int,int> cells, int count, Canvas canvas)
+        {
+            if (cells.Count > 0)
+            {
+                for (int i = 0; i < cells.Count; i++)
+                {
+                    Circle c = new Circle(25);
+
+                    Canvas can = (Canvas)myGrid.Children.Cast<UIElement>().First(e => Grid.GetRow(e) == cells.ElementAt(i).Key && Grid.GetColumn(e) == cells.ElementAt(i).Value);
+
+                    if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
+                    {                                             
+                        gridMatrix[cells.ElementAt(i).Key,cells.ElementAt(i).Value] = 2;
+                        c.Draw(can, Brushes.White);
+                    }
+                    else
+                    {
+                        gridMatrix[cells.ElementAt(i).Key, cells.ElementAt(i).Value] = 1;                        
+                        c.Draw(can, Brushes.Black);
+                    }
+                }
+            }
+        }
+
         private bool IsValidMove(int row, int column, Canvas canvas)
         {
-            //////////////BBUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUGG TODOOOOO
             flipCount = 0;
             bool valid = true;
+            cellsToFlip.Clear();
 
             if (gridMatrix[row, column].Equals((int)Cell.Empty))
             {
-                //Vertical - Down
+                //Vertical - DOWN from Selection
                 if (row != 7)
                 {
                     if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
                     {
-                        if (gridMatrix[row + 1, column].Equals((int)Cell.White) || gridMatrix[row + 1, column].Equals((int)Cell.Empty))
+                        if (gridMatrix[row + 1, column].Equals((int)Cell.White) || gridMatrix[row + 1, column].Equals((int)Cell.Empty) )
+                        {
+                            return false;
+                        }
+
+                        int b = 0;
+                        int w = 0;
+                        for (int i = row + 1; i < 8; i++)
+                        {
+                            if (gridMatrix[i, column].Equals((int)Cell.Black))
+                            {
+                                b++;
+                            }
+                            else if (gridMatrix[i, column].Equals((int)Cell.White))
+                            {
+                                w++;
+                            }
+                        }
+
+                        if (b >= 1 && w >= 1)
+                        {
+                            valid = true;
+                        }
+                        else
                         {
                             valid = false;
                         }
 
                         if (valid)
                         {
-                            for (int i = row + 2; i < 8 - row; i++)
+                            for (int i = row + 1; i < 8 - row; i++)
                             {
-                                if (!gridMatrix[i, column].Equals((int)Cell.Black) && !gridMatrix[i, column].Equals((int)Cell.Empty))
+                                if (!gridMatrix[i, column].Equals((int)Cell.White))
                                 {
                                     flipCount++;
+                                    cellsToFlip.Add(i, column);
                                 }
                                 else
                                 {
                                     break;
                                 }
-                            }
+                            }                            
                         }
                     }
                     else
                     {
                         if (gridMatrix[row + 1, column].Equals((int)Cell.Black) || gridMatrix[row + 1, column].Equals((int)Cell.Empty))
                         {
+                            return false;
+                        }
+
+                        int b = 0;
+                        int w = 0;
+                        for (int i = row + 1; i < 8; i++)
+                        {
+                            if (gridMatrix[i, column].Equals((int)Cell.Black))
+                            {
+                                b++;
+                            }
+                            else if(gridMatrix[i, column].Equals((int)Cell.White))
+                            {
+                                w++;
+                            }
+                        }
+
+                        if (b >= 1 && w >= 1)
+                        {
+                            valid = true;
+                        }
+                        else
+                        {
                             valid = false;
                         }
 
                         if (valid)
                         {
-                            for (int i = row + 2; i < 8 - row; i++)
+
+                            for (int i = row + 1; i < 8 - row; i++)
                             {
-                                if (!gridMatrix[i, column].Equals((int)Cell.White) && !gridMatrix[i, column].Equals((int)Cell.Empty))
+                                if (!gridMatrix[i, column].Equals((int)Cell.Black))
                                 {
                                     flipCount++;
+                                    cellsToFlip.Add(i, column);
                                 }
                                 else
                                 {
@@ -275,7 +349,7 @@ namespace Reversi
                 }
 
                 //Vertical - Up
-                if (row != 0)
+              /*  if (row != 0)
                 {
                     if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
                     {
@@ -321,11 +395,11 @@ namespace Reversi
                             }
                         }
                     }
-                }
+                }*/
             }
 
             if (flipCount > 0)
-            {
+            {                
                 valid = true;
             }
             else
@@ -336,26 +410,25 @@ namespace Reversi
             return valid;
         }
 
-        void FlipIfValid(int amount)
-        {
-            //TODOOOO
-        }
-
         //***************** EVENTS *****************
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             int r = Grid.GetRow(sender as Canvas);
             int c = Grid.GetColumn(sender as Canvas);
+            Canvas canvas = (sender as Canvas);
 
             if (gridMatrix[r, c].Equals((int)Cell.Empty))
             {
                 Circle newCircle = new Circle(25);
-                if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
+                if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's(AI)
                 {
-                    //TODO validMove
-                    gridMatrix[r, c] = (int)Cell.White;
-                    newCircle.Draw(sender as Canvas, Brushes.White);
-                    playerTurn = 1;
+                    if (IsValidMove(r, c, canvas))
+                    {
+                        gridMatrix[r, c] = (int)Cell.White;
+                        newCircle.Draw(canvas, Brushes.White);
+                        Flip(cellsToFlip, flipCount, canvas);
+                        playerTurn = 1;
+                    }
                 }
                 else
                 {
@@ -365,10 +438,13 @@ namespace Reversi
                     }
                     else
                     {
-                        //TODO validMove
-                        gridMatrix[r, c] = (int)Cell.Black;
-                        newCircle.Draw(sender as Canvas, Brushes.Black);
-                        playerTurn = 2;
+                        if (IsValidMove(r,c,canvas))
+                        {
+                            gridMatrix[r, c] = (int)Cell.Black;
+                            newCircle.Draw(canvas, Brushes.Black);
+                            Flip(cellsToFlip, flipCount, canvas);
+                            playerTurn = 2;
+                        }
                     }
                 }
                 RefreshUI();
