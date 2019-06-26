@@ -33,6 +33,18 @@ namespace Reversi
 
         List<Direction> validDirections = new List<Direction>();
 
+        struct FCell
+        {
+            public int Row;
+            public int Column;
+
+            public FCell(int row, int column)
+            {
+                this.Row = row;
+                this.Column = column;
+            }
+        }
+
         // 0 -> EMPTY   1 -> BLACK  2 -> WHITE
         int[,] startMatrix = new int[8, 8]
         {
@@ -48,7 +60,9 @@ namespace Reversi
         int[,] gridMatrix = new int[8, 8];
 
         int whitePoints = 0;
+        int WP = 0;
         int blackPoints = 0;
+        int BP = 0;
 
         int playerTurn = 2; //2 -> WHITE's    1-> BLACK's
         string playerOneName = null;
@@ -63,7 +77,8 @@ namespace Reversi
         string gameOverTime = null;
 
         int flipCount = 0;
-        Dictionary<int, int> cellsToFlip = new Dictionary<int, int>();
+        //Dictionary<int, int> cellsToFlip = new Dictionary<int, int>();
+        List<FCell> flipCells = new List<FCell>();
 
         public MainWindow()
         {
@@ -87,7 +102,9 @@ namespace Reversi
 
             whitePoints = 0;
             blackPoints = 0;
-
+            WP = 0;
+            BP = 0;
+       
             isStarted = true;
 
             WhitePointsLabel.Content = $"White({playerOneName}):";
@@ -185,6 +202,28 @@ namespace Reversi
 
             BlackPointsCounter.Content = blackPoints.ToString();
             WhitePointsCounter.Content = whitePoints.ToString();
+
+            if (blackPoints + whitePoints == 64)
+            {
+                BP = blackPoints;
+                WP = whitePoints;
+                if (blackPoints > whitePoints)
+                {
+                    TurnLabel.Content = "BLACK WON!";
+                    MessageBox.Show("BLACK WON!");
+                }
+                else if(whitePoints > blackPoints)
+                {
+                    TurnLabel.Content = "WHITE WON!";
+                    MessageBox.Show("WHITE WON!");
+                }
+                else
+                {
+                    TurnLabel.Content = "TIE!";
+                    MessageBox.Show("TIE!");
+                }
+                GameOver();
+            }
         }
 
         private void GameOver()
@@ -207,7 +246,7 @@ namespace Reversi
 
         private void SaveResult()
         {
-            SQLiteDataAccess.AddHighscore(new Highscore(playerOneName, playerTwoName, gameOverTime, whitePoints, blackPoints, date));
+            SQLiteDataAccess.AddHighscore(new Highscore(playerOneName, playerTwoName, gameOverTime, WP, BP, date));
         }
 
         private void OpenNewGameWindow()
@@ -218,7 +257,7 @@ namespace Reversi
             newGameWindow.ShowDialog();
         }
 
-        private void Flip(Dictionary<int,int> cells, int count, Canvas canvas)
+        private void Flip(List<FCell> cells, int count, Canvas canvas)
         {
             if (cells.Count > 0)
             {
@@ -226,176 +265,440 @@ namespace Reversi
                 {
                     Circle c = new Circle(25);
 
-                    Canvas can = (Canvas)myGrid.Children.Cast<UIElement>().First(e => Grid.GetRow(e) == cells.ElementAt(i).Key && Grid.GetColumn(e) == cells.ElementAt(i).Value);
+                    Canvas can = (Canvas)myGrid.Children.Cast<UIElement>().First(e => Grid.GetRow(e) == cells[i].Row && Grid.GetColumn(e) == cells[i].Column);
 
                     if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
                     {                                             
-                        gridMatrix[cells.ElementAt(i).Key,cells.ElementAt(i).Value] = 2;
+                        gridMatrix[cells[i].Row,cells[i].Column] = 2;
                         c.Draw(can, Brushes.White);
                     }
                     else
                     {
-                        gridMatrix[cells.ElementAt(i).Key, cells.ElementAt(i).Value] = 1;                        
+                        gridMatrix[cells[i].Row, cells[i].Column] = 1;
                         c.Draw(can, Brushes.Black);
                     }
                 }
             }
         }
 
+        private List<int> GetPossibleDirections(int row, int column, int playerTurn)
+        {
+            List<int> possibleDirections = new List<int>();
+
+            //0 1 2
+            //3 X 4 -> X = Selected cell
+            //5 6 7
+
+            if ((row - 1 >= 0 && row - 1 <= 7) && (column - 1 >= 0 && column - 1 <= 7))
+            {
+                if (gridMatrix[row - 1, column - 1] != (int)Cell.Empty && gridMatrix[row - 1, column - 1] != playerTurn)
+                {
+                    int p = 0;
+                    int r = row;
+                    int c = column - 1;
+                    for (int i = r - 1; i >= 0; i--)
+                    {
+                        int cc = c--;
+                        if (i >= 0 && c >= 0)
+                        {
+                            if (gridMatrix[i, cc].Equals(playerTurn))
+                            {
+                                p++;
+                            }
+                            else if (gridMatrix[i, cc].Equals((int)Cell.Empty))
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(0); //UP_LEFT
+                    }
+                }                                
+            }
+            if ((row - 1 >= 0 && row - 1 <= 7) && (column >= 0 && column <= 7))
+            {
+                if (gridMatrix[row - 1, column - 0] != (int)Cell.Empty && gridMatrix[row - 1, column - 0] != playerTurn)
+                {
+                    int p = 0;
+                    for (int i = row - 1; i >= 0; i--)
+                    {
+                        if (gridMatrix[i, column].Equals(playerTurn))
+                        {
+                            p++;
+                        }
+                        else if (gridMatrix[i, column].Equals((int)Cell.Empty))
+                        {
+                            break;
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(1);  //UP
+                    }
+                }
+            }
+            if ((row - 1 >= 0 && row - 1 <= 7) && (column + 1 >= 0 && column + 1 <= 7))
+            {
+                if (gridMatrix[row - 1, column + 1] != (int)Cell.Empty && gridMatrix[row - 1, column + 1] != playerTurn)
+                {
+                    int p = 0;
+                    int r = row;
+                    int c = column + 1;
+                    for (int i = r - 1; i >= 0; i--)
+                    {
+                        int cc = c++;
+                        if (i >= 0 && c < 8)
+                        {
+                            if (gridMatrix[i, cc].Equals(playerTurn))
+                            {
+                                p++;
+                            }
+                            else if (gridMatrix[i, cc].Equals((int)Cell.Empty))
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(2);  //UP_RIGHT
+                    }
+                }
+            }
+            if ((row >= 0 && row <= 7) && (column - 1 >= 0 && column - 1 <= 7))
+            {
+                if (gridMatrix[row, column - 1] != (int)Cell.Empty && gridMatrix[row, column - 1] != playerTurn)
+                {
+                    int p = 0;
+                    for (int i = column - 1; i >= 0; i--)
+                    {
+                        if (gridMatrix[row, i].Equals(playerTurn))
+                        {
+                            p++;
+                        }
+                        else if (gridMatrix[row, i].Equals((int)Cell.Empty))
+                        {
+                            break;
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(3);  //LEFT
+                    }
+                }
+            }
+            if ((row >= 0 && row <= 7) && (column + 1 >= 0 && column + 1 <= 7))
+            {
+                if (gridMatrix[row, column + 1] != (int)Cell.Empty && gridMatrix[row, column + 1] != playerTurn)
+                {
+                    int p = 0;
+                    for (int i = column + 1; i < 8; i++)
+                    {
+                        if (gridMatrix[row, i].Equals(playerTurn))
+                        {
+                            p++;
+                        }
+                        else if (gridMatrix[row, i].Equals((int)Cell.Empty))
+                        {
+                            break;
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(4);  //RIGHT
+                    }
+                }
+            }
+            if ((row + 1 >= 0 && row + 1 <= 7) && (column - 1 >= 0 && column - 1 <= 7))
+            {
+                if (gridMatrix[row + 1, column - 1] != (int)Cell.Empty && gridMatrix[row + 1, column - 1] != playerTurn)
+                {
+                    int p = 0;
+                    int r = row;
+                    int c = column - 1;
+                    for (int i = r + 1; i < 8; i++)
+                    {
+                        int cc = c--;
+                        if (i < 8 && c >= 0)
+                        {
+                            if (gridMatrix[i, cc].Equals(playerTurn))
+                            {
+                                p++;
+                            }
+                            else if (gridMatrix[i, cc].Equals((int)Cell.Empty))
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(5);  //DOWN_LEFT
+                    }
+                }
+            }
+            if ((row + 1 >= 0 && row + 1 <= 7) && (column >= 0 && column <= 7))
+            {
+                if (gridMatrix[row + 1, column] != (int)Cell.Empty && gridMatrix[row + 1, column] != playerTurn)
+                {
+                    int p = 0;
+                    int e = 0;
+                    for (int i = row + 1; i < 8; i++)
+                    {
+                        if (gridMatrix[i, column].Equals(playerTurn))
+                        {
+                            p++;
+                        }
+                        else if (gridMatrix[i, column].Equals((int)Cell.Empty))
+                        {
+                            break;
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(6);  //DOWN
+                    }
+                }
+            }
+            if ((row + 1 >= 0 && row + 1 <= 7) && (column + 1 >= 0 && column + 1 <= 7))
+            {
+                if (gridMatrix[row + 1, column + 1] != (int)Cell.Empty && gridMatrix[row + 1, column + 1] != playerTurn)
+                {
+                    int p = 0;
+                    int r = row;
+                    int c = column + 1;
+                    for (int i = r + 1; i < 8; i++)
+                    {
+                        int cc = c++;
+                        if (i < 8 && c < 8)
+                        {
+                            if (gridMatrix[i, cc].Equals(playerTurn))
+                            {
+                                p++;
+                            }
+                        }
+                    }
+
+                    if (p > 0)
+                    {
+                        possibleDirections.Add(7);  //DOWN_RIGHT
+                    }
+                }
+            }
+
+            return possibleDirections;
+        }
+
         private bool IsValidMove(int row, int column, Canvas canvas)
         {
             flipCount = 0;
             bool valid = true;
-            cellsToFlip.Clear();
+            flipCells.Clear();
+            //  cellsToFlip.Clear();
 
             if (gridMatrix[row, column].Equals((int)Cell.Empty))
             {
-                //Vertical - DOWN from Selection
-                if (row != 7)
+                List<int> possibleDirections = new List<int>();
+                possibleDirections = GetPossibleDirections(row, column, playerTurn);
+
+                if (possibleDirections.Count == 0)
                 {
-                    if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
+                    return false;
+                }
+
+                //0 1 2
+                //3 X 4 -> X = Selected cell
+                //5 6 7
+
+                flipCount = 0;
+                foreach (int item in possibleDirections)
+                {
+                    if (item == 0)  //UP_LEFT
                     {
-                        if (gridMatrix[row + 1, column].Equals((int)Cell.White) || gridMatrix[row + 1, column].Equals((int)Cell.Empty) )
+                        int r = row;
+                        int c = column-1;
+                        for (int i = r - 1; i >= 0; i--)
                         {
-                            return false;
-                        }
-
-                        int b = 0;
-                        int w = 0;
-                        for (int i = row + 1; i < 8; i++)
-                        {
-                            if (gridMatrix[i, column].Equals((int)Cell.Black))
+                            int cc = c--;
+                            if (cc >= 0)
                             {
-                                b++;
-                            }
-                            else if (gridMatrix[i, column].Equals((int)Cell.White))
-                            {
-                                w++;
-                            }
-                        }
-
-                        if (b >= 1 && w >= 1)
-                        {
-                            valid = true;
-                        }
-                        else
-                        {
-                            valid = false;
-                        }
-
-                        if (valid)
-                        {
-                            for (int i = row + 1; i < 8 - row; i++)
-                            {
-                                if (!gridMatrix[i, column].Equals((int)Cell.White))
-                                {
-                                    flipCount++;
-                                    cellsToFlip.Add(i, column);
+                                if (gridMatrix[i, cc].Equals(playerTurn))
+                                {                                    
+                                    break;
                                 }
                                 else
                                 {
-                                    break;
+                                    flipCount++;
+                                    FCell fcell = new FCell(i, cc);
+                                    if (!flipCells.Contains(fcell))
+                                    {
+                                        flipCells.Add(fcell);
+                                    }
                                 }
-                            }                            
+                            }                                    
+                        }
+                    }                                    
+                    else if (item == 1)  //UP
+                    {
+                        for (int i = row - 1; i >= 0; i--)
+                        {
+                            if (gridMatrix[i, column].Equals(playerTurn))
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                flipCount++;
+                                FCell fcell = new FCell(i, column);
+                                if (!flipCells.Contains(fcell))
+                                {
+                                    flipCells.Add(fcell);
+                                }
+                            }
                         }
                     }
-                    else
+                    else if (item == 2)  //UP_RIGHT
                     {
-                        if (gridMatrix[row + 1, column].Equals((int)Cell.Black) || gridMatrix[row + 1, column].Equals((int)Cell.Empty))
+                        int r = row;
+                        int c = column + 1;
+                        for (int i = r - 1; i >= 0; i--)
                         {
-                            return false;
-                        }
-
-                        int b = 0;
-                        int w = 0;
-                        for (int i = row + 1; i < 8; i++)
-                        {
-                            if (gridMatrix[i, column].Equals((int)Cell.Black))
+                            int cc = c++;
+                            if (cc < 8)
                             {
-                                b++;
-                            }
-                            else if(gridMatrix[i, column].Equals((int)Cell.White))
-                            {
-                                w++;
-                            }
-                        }
-
-                        if (b >= 1 && w >= 1)
-                        {
-                            valid = true;
-                        }
-                        else
-                        {
-                            valid = false;
-                        }
-
-                        if (valid)
-                        {
-
-                            for (int i = row + 1; i < 8 - row; i++)
-                            {
-                                if (!gridMatrix[i, column].Equals((int)Cell.Black))
+                                if (gridMatrix[i, cc].Equals(playerTurn))
                                 {
-                                    flipCount++;
-                                    cellsToFlip.Add(i, column);
+                                    break;
                                 }
                                 else
                                 {
+                                    flipCount++;
+                                    FCell fcell = new FCell(i, cc);
+                                    if (!flipCells.Contains(fcell))
+                                    {
+                                        flipCells.Add(fcell);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (item == 3)  //LEFT
+                    {
+                        for (int i = column - 1; i >= 0; i--)
+                        {
+                            if (gridMatrix[row, i].Equals(playerTurn))
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                flipCount++;
+                                FCell fcell = new FCell(row, i);
+                                if (!flipCells.Contains(fcell))
+                                {
+                                    flipCells.Add(fcell);
+                                }
+                            }
+                        }
+                    }
+                    else if (item == 4)  //RIGHT
+                    {
+                        for (int i = column + 1; i < 7; i++)
+                        {
+                            if (gridMatrix[row, i].Equals(playerTurn))
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                flipCount++;
+                                FCell fcell = new FCell(row, i);
+                                if (!flipCells.Contains(fcell))
+                                {
+                                    flipCells.Add(fcell);
+                                }
+                            }
+                        }
+                    }
+                    else if (item == 5)  //DOWN_LEFT
+                    {
+                        int r = row;
+                        int c = column - 1;
+                        for (int i = r + 1; i < 8; i++)
+                        {
+                            int cc = c--;
+                            if (cc >= 0)
+                            {
+                                if (gridMatrix[i, cc].Equals(playerTurn))
+                                {
                                     break;
+                                }
+                                else
+                                {
+                                    flipCount++;
+                                    FCell fcell = new FCell(i, cc);
+                                    if (!flipCells.Contains(fcell))
+                                    {
+                                        flipCells.Add(fcell);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (item == 6)  //DOWN
+                    {
+                        for (int i = row + 1; i < 8; i++)
+                        {
+                            if (gridMatrix[i, column].Equals(playerTurn))
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                flipCount++;
+                                FCell fcell = new FCell(i, column);
+                                if (!flipCells.Contains(fcell))
+                                {
+                                    flipCells.Add(fcell);
+                                }
+                            }
+                        }
+                    }
+                    else if (item == 7)  //DOWN_RIGHT
+                    {
+                        int r = row;
+                        int c = column + 1;
+                        for (int i = r + 1; i < 8; i++)
+                        {
+                            int cc = c++;
+                            if (cc < 8)
+                            {
+                                if (gridMatrix[i, cc].Equals(playerTurn))
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    flipCount++;
+                                    FCell fcell = new FCell(i, cc);
+                                    if (!flipCells.Contains(fcell))
+                                    {
+                                        flipCells.Add(fcell);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-
-                //Vertical - Up
-              /*  if (row != 0)
-                {
-                    if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's
-                    {
-                        if (gridMatrix[row - 1, column].Equals((int)Cell.White) || gridMatrix[row - 1, column].Equals((int)Cell.Empty))
-                        {
-                            valid = false;
-                        }
-
-                        if (valid)
-                        {
-                            for (int i = row - 2; i > 0; i--)
-                            {
-                                if (!gridMatrix[i, column].Equals((int)Cell.Black) && !gridMatrix[i, column].Equals((int)Cell.Empty))
-                                {
-                                    flipCount++;
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (gridMatrix[row - 1, column].Equals((int)Cell.Black) || gridMatrix[row - 1, column].Equals((int)Cell.Empty))
-                        {
-                            valid = false;
-                        }
-
-                        if (valid)
-                        {
-                            for (int i = row - 2; i > 0; i--)
-                            {
-                                if (!gridMatrix[i, column].Equals((int)Cell.White) && !gridMatrix[i, column].Equals((int)Cell.Empty))
-                                {
-                                    flipCount++;
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }*/
             }
 
             if (flipCount > 0)
@@ -426,7 +729,7 @@ namespace Reversi
                     {
                         gridMatrix[r, c] = (int)Cell.White;
                         newCircle.Draw(canvas, Brushes.White);
-                        Flip(cellsToFlip, flipCount, canvas);
+                        Flip(flipCells, flipCount, canvas);
                         playerTurn = 1;
                     }
                 }
@@ -442,7 +745,7 @@ namespace Reversi
                         {
                             gridMatrix[r, c] = (int)Cell.Black;
                             newCircle.Draw(canvas, Brushes.Black);
-                            Flip(cellsToFlip, flipCount, canvas);
+                            Flip(flipCells, flipCount, canvas);
                             playerTurn = 2;
                         }
                     }
