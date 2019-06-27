@@ -12,10 +12,19 @@ namespace Reversi
     public class Circle
     {
         public int Radius { get; set; }
+        public int Row { get; set; }
+        public int Column { get; set; }
 
         public Circle(int radius)
         {
-            Radius = radius;
+            this.Radius = radius;
+        }
+
+        public Circle(int radius,int row, int column)
+        {
+            this.Radius = radius;
+            this.Row = row;
+            this.Column = Column;
         }
 
         public void Draw(Canvas canvas, SolidColorBrush fillColor)
@@ -26,7 +35,6 @@ namespace Reversi
             circle.Stroke = Brushes.Black;
             circle.Fill = fillColor;
 
-            //Delete the previous and create a new one
             canvas.Children.Clear();
             canvas.Children.Add(circle);
         }

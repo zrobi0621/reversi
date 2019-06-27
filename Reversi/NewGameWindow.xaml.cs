@@ -64,6 +64,10 @@ namespace Reversi
             playerTurn = r.Next(1, 3);  //2 -> WHITE's    1-> BLACK's
 
             mainWindow.InitGame(playerTurn, playerOneName, playerTwoName, ai);
+            if (ai)
+            {
+                mainWindow.playerTurn = 2;
+            }
             mainWindow.isStarted = true;
             RefreshGame.DynamicInvoke();
             this.Close();

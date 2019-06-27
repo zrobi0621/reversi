@@ -37,11 +37,20 @@ namespace Reversi
         {
             public int Row;
             public int Column;
+            public int FlipCount;
 
             public FCell(int row, int column)
             {
                 this.Row = row;
                 this.Column = column;
+                this.FlipCount = 0;
+            }
+
+            public FCell(int row, int column, int flipCount)
+            {
+                this.Row = row;
+                this.Column = column;
+                this.FlipCount = flipCount;
             }
         }
 
@@ -59,25 +68,23 @@ namespace Reversi
         };
         int[,] gridMatrix = new int[8, 8];
 
-        int whitePoints = 0;
-        int WP = 0;
+        int whitePoints = 0;        
         int blackPoints = 0;
+        int WP = 0;
         int BP = 0;
 
-        int playerTurn = 2; //2 -> WHITE's    1-> BLACK's
+        public int playerTurn = 2; //2 -> WHITE's    1-> BLACK's
         string playerOneName = null;
         string playerTwoName = null;
-        bool ai = false;
 
+        bool ai = false;
         public bool isStarted { get; set; }
 
         DispatcherTimer dispatcherTimer = new DispatcherTimer();
         int ticked = 0;
-
         string gameOverTime = null;
 
-        int flipCount = 0;
-        //Dictionary<int, int> cellsToFlip = new Dictionary<int, int>();
+        int flipCount = 0;        
         List<FCell> flipCells = new List<FCell>();
 
         public MainWindow()
@@ -119,11 +126,31 @@ namespace Reversi
             }
             else
             {
-                MessageBox.Show($"BLACK ({playerTwoName}) starts!");
+                MessageBox.Show($"BLACK ({playerTwoName}) starts!");                              
             }
 
             ticked = 0;
             dispatcherTimer.Start();
+
+            if (ai && playerTurn == 1)
+            {
+                List<FCell> posCells = GetAIPossibleCells();
+                FCell best = GetBestCell(posCells);
+                int flipC = best.FlipCount;
+
+                if (IsValidMove(best.Row, best.Column))
+                {                                       
+                    Flip(flipCells, flipC);
+                    Canvas canv = new Canvas();
+                    Grid.SetRow(canv, best.Row);
+                    Grid.SetColumn(canv, best.Column);
+                    myGrid.Children.Add(canv);
+                    Circle newCircle = new Circle(25);
+                    newCircle.Draw(canv, Brushes.Blue);
+                    gridMatrix[best.Row, best.Column] = (int)Cell.Black;
+                }
+                playerTurn = 2;
+            }
         }
 
         private void CreateGrid()
@@ -172,7 +199,6 @@ namespace Reversi
                 TurnLabel.Content = "WHITE's turn!";
                 TurnLabel.Background = Brushes.White;
                 TurnLabel.Foreground = Brushes.Black;
-
             }
             else
             {
@@ -257,7 +283,7 @@ namespace Reversi
             newGameWindow.ShowDialog();
         }
 
-        private void Flip(List<FCell> cells, int count, Canvas canvas)
+        private void Flip(List<FCell> cells, int count)
         {
             if (cells.Count > 0)
             {
@@ -450,7 +476,6 @@ namespace Reversi
                 if (gridMatrix[row + 1, column] != (int)Cell.Empty && gridMatrix[row + 1, column] != playerTurn)
                 {
                     int p = 0;
-                    int e = 0;
                     for (int i = row + 1; i < 8; i++)
                     {
                         if (gridMatrix[i, column].Equals(playerTurn))
@@ -498,7 +523,7 @@ namespace Reversi
             return possibleDirections;
         }
 
-        private bool IsValidMove(int row, int column, Canvas canvas)
+        private bool IsValidMove(int row, int column)
         {
             flipCount = 0;
             bool valid = true;
@@ -713,6 +738,51 @@ namespace Reversi
             return valid;
         }
 
+        private List<FCell> GetAIPossibleCells()
+        {
+            List<FCell> possibleCells = new List<FCell>();
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (gridMatrix[i,j].Equals((int)Cell.Empty))
+                    {
+                        if (IsValidMove(i, j))
+                        {
+                            possibleCells.Add(new FCell(i, j, flipCount));
+                        }
+                    }                    
+                }
+            }
+            return possibleCells;
+        }
+
+        private FCell GetBestCell(List<FCell> cells)
+        {
+            int max = 0;
+            FCell f = new FCell();
+
+            foreach (FCell cell in cells)
+            {
+                if (cell.FlipCount >= max)
+                {
+                    max = cell.FlipCount;
+                }
+            }
+
+            foreach (FCell c in cells)
+            {
+                if (max == c.FlipCount)
+                {
+                    f.Row = c.Row;
+                    f.Column = c.Column;
+                    f.FlipCount = c.FlipCount;
+                }
+            }
+            return f;
+        }
+
         //***************** EVENTS *****************
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -725,27 +795,43 @@ namespace Reversi
                 Circle newCircle = new Circle(25);
                 if (playerTurn == 2)    //2 -> WHITE's    1-> BLACK's(AI)
                 {
-                    if (IsValidMove(r, c, canvas))
+                    if (IsValidMove(r, c))
                     {
                         gridMatrix[r, c] = (int)Cell.White;
                         newCircle.Draw(canvas, Brushes.White);
-                        Flip(flipCells, flipCount, canvas);
+                        Flip(flipCells, flipCount);
                         playerTurn = 1;
+
+                        if (ai && playerTurn == 1)
+                        {
+                            List<FCell> posCells = GetAIPossibleCells();
+                            FCell best = GetBestCell(posCells);
+                            int flipC = best.FlipCount;
+
+                            if (IsValidMove(best.Row, best.Column))
+                            {
+                                gridMatrix[best.Row, best.Column] = (int)Cell.Black;
+                                Canvas canv = new Canvas();
+                                Grid.SetRow(canv, best.Row);
+                                Grid.SetColumn(canv, best.Column);
+                                myGrid.Children.Add(canv);
+                                Circle newCirc = new Circle(25);
+                                newCirc.Draw(canv, Brushes.Black);
+                                Flip(flipCells, flipC);
+                            }
+                            playerTurn = 2;
+                        }
                     }
                 }
                 else
                 {
-                    if (ai)
-                    {
-                        //TODO
-                    }
-                    else
-                    {
-                        if (IsValidMove(r,c,canvas))
+                    if (!ai)
+                    {                    
+                        if (IsValidMove(r,c))
                         {
                             gridMatrix[r, c] = (int)Cell.Black;
                             newCircle.Draw(canvas, Brushes.Black);
-                            Flip(flipCells, flipCount, canvas);
+                            Flip(flipCells, flipCount);
                             playerTurn = 2;
                         }
                     }
@@ -761,7 +847,7 @@ namespace Reversi
             int c = Grid.GetColumn(sender as Canvas);
             Canvas canvas = (sender as Canvas);
 
-            if (IsValidMove(r, c, canvas))
+            if (IsValidMove(r, c))
             {
                 if (canvas.Children.Count < 1)
                 {
