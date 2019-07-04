@@ -29,9 +29,6 @@ namespace Reversi
         public event RefreshGame RefreshGameEvent;
 
         enum Cell { Empty, Black, White }
-        enum Direction { North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest }
-
-        List<Direction> validDirections = new List<Direction>();
 
         struct FCell
         {
@@ -146,7 +143,7 @@ namespace Reversi
                     Grid.SetColumn(canv, best.Column);
                     myGrid.Children.Add(canv);
                     Circle newCircle = new Circle(25);
-                    newCircle.Draw(canv, Brushes.Blue);
+                    newCircle.Draw(canv, Brushes.Black);
                     gridMatrix[best.Row, best.Column] = (int)Cell.Black;
                 }
                 playerTurn = 2;

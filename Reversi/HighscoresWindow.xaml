@@ -17,7 +17,7 @@
                 <GridView>
                     <GridViewColumn Header="White Player" Width="100" DisplayMemberBinding="{Binding Path=WhitePlayer}" />
                     <GridViewColumn Header="Black Player" Width="100" DisplayMemberBinding="{Binding Path=BlackPlayer}" />
-                    <GridViewColumn Header="White Points" Width="75" DisplayMemberBinding="{Binding Path=BlackPoints}" />
+                    <GridViewColumn Header="White Points" Width="75" DisplayMemberBinding="{Binding Path=WhitePoints}" />
                     <GridViewColumn Header="Black Points" Width="75" DisplayMemberBinding="{Binding Path=BlackPoints}" />
                     <GridViewColumn Header="Time" Width="70" DisplayMemberBinding="{Binding Path=Time}" />
                     <GridViewColumn Header="Date" Width="80" DisplayMemberBinding="{Binding Path=Date}" />
